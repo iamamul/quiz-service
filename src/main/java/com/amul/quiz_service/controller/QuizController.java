@@ -4,6 +4,7 @@ import com.amul.quiz_service.model.QuestionWrapper;
 import com.amul.quiz_service.model.QuizDto;
 import com.amul.quiz_service.model.Response;
 import com.amul.quiz_service.service.QuizService;
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -21,6 +22,8 @@ public class QuizController {
     public ResponseEntity<String> createQuiz(@RequestBody QuizDto quizDto){
         return quizService.createQuiz(quizDto.getCategoryName(), quizDto.getNumQuestions(), quizDto.getTitle());
     }
+
+    @CircuitBreaker(name="getQuizQuestion", fallbackMethod = "fallback")
     @GetMapping("get/{id}")
     public ResponseEntity<List<QuestionWrapper>> getQuizQuestions(@PathVariable Integer id){
         return quizService.getQuizQuestions(id);
@@ -31,5 +34,8 @@ public class QuizController {
         return quizService.calculateResult(id, responses);
     }
 
+    public String fallback(Throwable throwable){
+        return "Please try again later";
+    }
 
 }
